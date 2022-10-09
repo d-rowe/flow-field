@@ -2,7 +2,7 @@ import Particle from "./Particle";
 import VectorField from "./VectorField";
 
 const DEFAULT_MAX_PARTICLES = 200;
-const FIELD_SCALE = 10;
+const FIELD_SCALE = 30;
 
 const container = document.getElementById('root');
 if (!container) {
@@ -10,13 +10,13 @@ if (!container) {
 }
 
 const { width: pageWidth, height: pageHeight } = container.getBoundingClientRect();
-const width = pageWidth * devicePixelRatio;
-const height = pageHeight * devicePixelRatio;
+let width = pageWidth * devicePixelRatio;
+let height = pageHeight * devicePixelRatio;
 const canvas = createCanvas();
 container.append(canvas);
-const ctx = canvas.getContext('2d');
-const fieldWidth = width / FIELD_SCALE;
-const fieldHeight = height / FIELD_SCALE;
+const ctx = canvas.getContext('2d')!;
+let fieldWidth = width / FIELD_SCALE;
+let fieldHeight = height / FIELD_SCALE;
 const vectorField = new VectorField(fieldWidth, fieldHeight);
 const particles: Particle[] = [];
 const params = new URLSearchParams(document.location.search);
@@ -60,10 +60,10 @@ function drawParticles() {
         try {
             const vector = vectorField.getVector(fieldX, fieldY);
             particle.move(vector.x * 4, vector.y * 4);
-            ctx!.fillStyle = '#219ebc';
-            ctx?.beginPath();
-            ctx?.arc(particle.x, particle.y, 1, 0, 2 * Math.PI);
-            ctx?.fill();
+            ctx.fillStyle = '#219ebc';
+            ctx.beginPath();
+            ctx.arc(particle.x, particle.y, 1, 0, 2 * Math.PI);
+            ctx.fill();
         } catch (err) {
             particles.splice(i, 1);
         }
@@ -81,12 +81,12 @@ function drawField() {
             const startY = fieldY * FIELD_SCALE;
             const endX = startX + (vector.x * FIELD_SCALE);
             const endY = startY + (vector.y * FIELD_SCALE);
-            ctx!.lineWidth = 0.5;
-            ctx!.strokeStyle = '#fb8500';
-            ctx!.beginPath();
-            ctx!.moveTo(startX, startY);
-            ctx!.lineTo(endX, endY);
-            ctx!.stroke();
+            ctx.lineWidth = 0.5;
+            ctx.strokeStyle = '#fb8500';
+            ctx.beginPath();
+            ctx.moveTo(startX, startY);
+            ctx.lineTo(endX, endY);
+            ctx.stroke();
         }
     }
 }
@@ -108,3 +108,17 @@ container.addEventListener('click', (event: MouseEvent) => {
     const y = event.clientY * devicePixelRatio;
     particles.push(new Particle(x, y));
 });
+
+window.onresize = () => {
+    const { width: pageWidth, height: pageHeight } = container.getBoundingClientRect();
+    width = pageWidth * devicePixelRatio;
+    height = pageHeight * devicePixelRatio;
+    canvas.width = width;
+    canvas.height = height;
+    canvas.setAttribute('style', `height: ${pageHeight}px; width: ${pageWidth}px`);
+    fieldWidth = width / FIELD_SCALE;
+    fieldHeight = height / FIELD_SCALE;
+    vectorField.width = fieldWidth;
+    vectorField.height = fieldHeight;
+    clear();
+};
