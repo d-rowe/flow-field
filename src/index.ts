@@ -2,7 +2,7 @@ import Particle from "./Particle";
 import VectorField from "./VectorField";
 
 const DEFAULT_MAX_PARTICLES = 200;
-const FIELD_SCALE = 30;
+const FIELD_SCALE = 10;
 
 const container = document.getElementById('root');
 if (!container) {
