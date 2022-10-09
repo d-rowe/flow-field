@@ -41,7 +41,7 @@ function createParticles() {
 requestAnimationFrame(animate);
 
 drawField();
-function animate(time: number) {
+function animate() {
     if (shouldClear) {
         clear();
         drawField();
