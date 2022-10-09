@@ -1,7 +1,7 @@
 import Particle from "./Particle";
 import VectorField from "./VectorField";
 
-const MAX_PARTICLES = 200;
+const DEFAULT_MAX_PARTICLES = 200;
 const FIELD_SCALE = 10;
 
 const container = document.getElementById('root');
@@ -22,13 +22,15 @@ const particles: Particle[] = [];
 const params = new URLSearchParams(document.location.search);
 const shouldClear = Boolean(params.get('refresh'));
 const shouldDrawField = Boolean(params.get('field'));
+const paramParticles = params.get('particles');
+const maxParticles = (paramParticles && Number(paramParticles)) ?? DEFAULT_MAX_PARTICLES;
 
 function createParticles() {
-    if (particles.length >= MAX_PARTICLES) {
+    if (particles.length >= maxParticles) {
         return;
     }
-    for (let i = 0; i < MAX_PARTICLES; i++) {
-        if (particles.length >= MAX_PARTICLES) {
+    for (let i = 0; i < maxParticles; i++) {
+        if (particles.length >= maxParticles) {
             break;
         }
         particles.push(new Particle(
