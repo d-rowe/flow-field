@@ -1,8 +1,9 @@
-import Particle from "./Particle";
+import ParticleTrail from './ParticleTrail';
 import VectorField from "./VectorField";
 
 const DEFAULT_MAX_PARTICLES = 200;
-const FIELD_SCALE = 10;
+const FIELD_SCALE = 50;
+const PARTICLE_SIZE = 2;
 
 const container = document.getElementById('root');
 if (!container) {
@@ -18,54 +19,54 @@ const ctx = canvas.getContext('2d')!;
 let fieldWidth = width / FIELD_SCALE;
 let fieldHeight = height / FIELD_SCALE;
 const vectorField = new VectorField(fieldWidth, fieldHeight);
-const particles: Particle[] = [];
+const particleTrails: ParticleTrail[] = [];
 const params = new URLSearchParams(document.location.search);
-const shouldClear = Boolean(params.get('refresh'));
 const shouldDrawField = Boolean(params.get('field'));
 const paramParticles = params.get('particles');
-const maxParticles = (paramParticles && Number(paramParticles)) ?? DEFAULT_MAX_PARTICLES;
-
-function createParticles() {
-    if (particles.length >= maxParticles) {
-        return;
-    }
-    for (let i = 0; i < maxParticles; i++) {
-        if (particles.length >= maxParticles) {
-            break;
-        }
-        particles.push(new Particle(
-            Math.random() * width,
-            Math.random() * height
-        ));
-    }
-}
+const maxTrails = (paramParticles && Number(paramParticles)) ?? DEFAULT_MAX_PARTICLES;
 
 requestAnimationFrame(animate);
 
-drawField();
-function animate() {
-    if (shouldClear) {
-        clear();
-        drawField();
-    }
-    createParticles();
-    drawParticles();
+function animate(time: number) {
+    vectorField.update(time);
+    createParticleTrails();
+    clear();
+    drawField();
+    updateAndDrawParticleTrails();
     requestAnimationFrame(animate);
 }
 
-function drawParticles() {
-    particles.forEach((particle, i) => {
+function updateAndDrawParticleTrails() {
+    particleTrails.forEach((particleTrail, i) => {
+        const { head } = particleTrail;
+        if (!head) {
+            return;
+        }
+        const { particle } = head;
         const fieldX = Math.floor(particle.x / FIELD_SCALE);
         const fieldY = Math.floor(particle.y / FIELD_SCALE);
+        let currentNode = particleTrail.head;
         try {
             const vector = vectorField.getVector(fieldX, fieldY);
-            particle.move(vector.x * 4, vector.y * 4);
-            ctx.fillStyle = '#219ebc';
-            ctx.beginPath();
-            ctx.arc(particle.x, particle.y, 1, 0, 2 * Math.PI);
-            ctx.fill();
+            currentNode = particleTrail.addParticle(
+                particle.x + (vector.x * 4),
+                particle.y + vector.y * 4
+            );
         } catch (err) {
-            particles.splice(i, 1);
+            particleTrail.removeLastParticle();
+            if (particleTrail.length < 2) {
+                particleTrails.splice(i, 1);
+            }
+        }
+        let alpha = 1;
+        while (currentNode) {
+            const currentParticle = currentNode.particle;
+            ctx.fillStyle = `rgba(0, 0, 0, ${alpha}`;
+            ctx.beginPath();
+            ctx.arc(currentParticle.x, currentParticle.y, PARTICLE_SIZE, 0, 2 * Math.PI);
+            ctx.fill();
+            currentNode = currentNode.next;
+            alpha -= 1 / particleTrail.length;
         }
     });
 }
@@ -91,8 +92,25 @@ function drawField() {
     }
 }
 
+function createParticleTrails() {
+    if (particleTrails.length >= maxTrails) {
+        return;
+    }
+    for (let i = 0; i < maxTrails; i++) {
+        if (particleTrails.length >= maxTrails) {
+            break;
+        }
+        const trail = new ParticleTrail();
+        trail.addParticle(
+            Math.random() * width,
+            Math.random() * height,
+        );
+        particleTrails.push(trail);
+    }
+}
+
 function clear() {
-    ctx?.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 }
 
 function createCanvas(): HTMLCanvasElement {
@@ -102,12 +120,6 @@ function createCanvas(): HTMLCanvasElement {
     canvas.setAttribute('style', `height: ${pageHeight}px; width: ${pageWidth}px`);
     return canvas;
 }
-
-container.addEventListener('click', (event: MouseEvent) => {
-    const x = event.clientX * devicePixelRatio;
-    const y = event.clientY * devicePixelRatio;
-    particles.push(new Particle(x, y));
-});
 
 window.onresize = () => {
     const { width: pageWidth, height: pageHeight } = container.getBoundingClientRect();

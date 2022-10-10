@@ -5,7 +5,7 @@ import type { NoiseFunction3D } from 'simplex-noise';
 
 type Field = Vector[][];
 
-const noiseScale = 0.00002;
+const noiseScale = 0.0002;
 const timeNoiseScale = 0.0000005;
 
 export default class VectorField {
