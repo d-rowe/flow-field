@@ -61,7 +61,7 @@ function updateAndDrawParticleTrails() {
                 particleTrails.splice(i, 1);
             }
         }
-        let alpha = 0.3;
+        let alpha = 0.5;
         while (currentNode) {
             const currentParticle = currentNode.particle;
             ctx.fillStyle = `rgba(255, 255, 255, ${alpha}`;
