@@ -12,7 +12,7 @@ let width = pageWidth * devicePixelRatio;
 let height = pageHeight * devicePixelRatio;
 const canvas = createCanvas();
 container.append(canvas);
-const ctx = canvas.getContext('2d')!;
+const ctx = canvas.getContext('2d', { alpha: false })!;
 let fieldWidth = width / options.fieldScale;
 let fieldHeight = height / options.fieldScale;
 const vectorField = new VectorField(fieldWidth, fieldHeight);
@@ -22,45 +22,45 @@ requestAnimationFrame(animate);
 
 function animate(time: number) {
     vectorField.update(time, options.noiseScale, options.timeNoiseScale);
-    fillParticles();
+    updateParticles();
     clearFrame();
-    updateAndDrawParticleTrails();
+    drawParticles();
     requestAnimationFrame(animate);
 }
 
-function updateAndDrawParticleTrails() {
+function updateParticles() {
+    // ensure we have the right number of particles
+    const particleFillCount = options.particleCount - particles.length;
+    for (let i = 0; i < particleFillCount; i++) {
+        particles.push(new Particle(
+            ctx,
+            Math.random() * width,
+            Math.random() * height,
+        ));
+    }
+
+    // update particle positions
     particles.forEach((particle, i) => {
-        if (Math.random() > options.particleLifeSpan) {
+        if (Math.random() > options.particleSurvivalRate) {
             particles.splice(i, 1);
         }
         const fieldX = Math.floor(particle.x / options.fieldScale);
         const fieldY = Math.floor(particle.y / options.fieldScale);
         const vector = vectorField.getVector(fieldX, fieldY);
         if (vector) {
-            particle.x += vector.x * 4;
-            particle.y += vector.y * 4;
+            particle.move(vector.x, vector.y);
         } else {
             particles.splice(i, 1);
         }
-        ctx.fillStyle = `rgba(255, 255, 255, ${options.particleAlpha})`;
-        ctx.beginPath();
-        ctx.arc(particle.x, particle.y, options.particleSize, 0, 2 * Math.PI);
-        ctx.fill();
     });
 }
 
-function fillParticles() {
-    const particleFillCount = options.particleCount - particles.length;
-    for (let i = 0; i < particleFillCount; i++) {
-        particles.push(new Particle(
-            Math.random() * width,
-            Math.random() * height,
-        ));
-    }
+function drawParticles() {
+    particles.forEach(p => p.draw());
 }
 
 function clearFrame() {
-    ctx.fillStyle = `rgba(0, 0, 0, ${options.frameAlpha})`;
+    ctx.fillStyle = `rgba(0, 0, 0, ${1 - options.blending})`;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 }
 
