@@ -2,6 +2,8 @@ import options from './options';
 
 export default class Particle {
     declare ctx: CanvasRenderingContext2D;
+    declare lastX: number;
+    declare lastY: number;
     declare x: number;
     declare y: number;
     declare xVel: number;
@@ -9,6 +11,8 @@ export default class Particle {
 
     constructor(ctx: CanvasRenderingContext2D,x: number, y: number) {
         this.ctx = ctx;
+        this.lastX = x;
+        this.lastY = 0;
         this.x = x;
         this.y = y;
         this.xVel = 0;
@@ -16,6 +20,16 @@ export default class Particle {
     }
 
     draw(): void {
+        if (options.drawLines) {
+            this.ctx.strokeStyle = `rgba(255, 255, 255, ${options.particleAlpha})`;
+            this.ctx.lineWidth = options.particleSize;
+            this.ctx.beginPath();
+            this.ctx.moveTo(this.lastX, this.lastY);
+            this.ctx.lineTo(this.x, this.y);
+            this.ctx.stroke();
+            return;
+        }
+
         this.ctx.fillStyle = `rgba(255, 255, 255, ${options.particleAlpha})`;
         this.ctx.beginPath();
         this.ctx.arc(
@@ -26,6 +40,7 @@ export default class Particle {
             2 * Math.PI
         );
         this.ctx.fill();
+
     }
 
     move(x: number, y: number): void {
@@ -44,6 +59,8 @@ export default class Particle {
         } else {
             this.yVel = Math.max(rawYVel, -options.particleMaxSpeed);
         }
+        this.lastX = this.x;
+        this.lastY = this.y;
         this.x += this.xVel;
         this.y += this.yVel;
         this.xVel *= 1 - options.friction;

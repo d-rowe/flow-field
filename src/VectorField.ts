@@ -15,25 +15,25 @@ export default class VectorField {
     declare field: Field;
     declare time: number;
     declare noiseScale: number;
-    declare timeNoiseScale: number;
+    declare flux: number;
 
     constructor(width: number, height: number, z = 0) {
         this.time = 0;
         this.noiseScale = DEFAULT_NOISE_SCALE;
-        this.timeNoiseScale = DEFAULT_TIME_NOISE_SCALE;
+        this.flux = DEFAULT_TIME_NOISE_SCALE;
         this.width = width;
         this.height = height;
         this.z = z;
         this.field = this.initializeField();
     }
 
-    update(time: number, noiseScale?: number, timeNoiseScale?: number): void {
+    update(time: number, noiseScale?: number, flux?: number): void {
         this.time = time;
         if (noiseScale !== undefined) {
             this.noiseScale = noiseScale;
         }
-        if (timeNoiseScale !== undefined) {
-            this.timeNoiseScale = timeNoiseScale;
+        if (flux !== undefined) {
+            this.flux = flux;
         }
 
         this.updateField();
@@ -62,7 +62,7 @@ export default class VectorField {
                 const angle = (noise(
                     x * this.noiseScale,
                     y * this.noiseScale,
-                    this.time * this.timeNoiseScale,
+                    this.time * this.flux,
                 ) + 1) * 180;
                 this.field[y][x] = new Vector(angle);
             }

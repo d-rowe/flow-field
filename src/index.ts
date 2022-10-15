@@ -21,16 +21,19 @@ const particles: Particle[] = [];
 requestAnimationFrame(animate);
 
 function animate(time: number) {
-    vectorField.update(time, options.noiseScale, options.timeNoiseScale);
-    updateParticles();
+    vectorField.update(time, options.noiseScale, options.flux / 2000000);
     clearFrame();
-    drawParticles();
+    updateParticles();
     requestAnimationFrame(animate);
 }
 
 function updateParticles() {
     // ensure we have the right number of particles
     const particleFillCount = options.particleCount - particles.length;
+    if (particleFillCount < 0) {
+        const particlesToRemove = -particleFillCount;
+        particles.splice(particles.length - particlesToRemove, particlesToRemove);
+    }
     for (let i = 0; i < particleFillCount; i++) {
         particles.push(new Particle(
             ctx,
@@ -42,7 +45,7 @@ function updateParticles() {
     // update particle positions
     particles.forEach((particle, i) => {
         if (Math.random() > options.particleSurvivalRate) {
-            particles.splice(i, 1);
+            resetParticle(particle);
         }
         const fieldX = Math.floor(particle.x / options.fieldScale);
         const fieldY = Math.floor(particle.y / options.fieldScale);
@@ -50,13 +53,19 @@ function updateParticles() {
         if (vector) {
             particle.move(vector.x, vector.y);
         } else {
-            particles.splice(i, 1);
+            resetParticle(particle);
         }
+        particle.draw();
     });
 }
 
-function drawParticles() {
-    particles.forEach(p => p.draw());
+function resetParticle(particle: Particle) {
+    const x = Math.random() * width;
+    const y= Math.random() * height;
+    particle.lastX = x;
+    particle.lastY = y;
+    particle.x = x;
+    particle.y = y;
 }
 
 function clearFrame() {
