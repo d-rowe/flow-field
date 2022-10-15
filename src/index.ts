@@ -1,9 +1,13 @@
 import Particle from './Particle';
 import VectorField from "./VectorField";
 
-const DEFAULT_MAX_PARTICLES = 10000;
-const FIELD_SCALE = 10;
-const PARTICLE_SIZE = 1;
+const params = {
+    particleCount: 10000,
+    particleSize: 1,
+    fieldScale: 10,
+    particleSurvivalRate: 97,
+    frameAlpha: 0.02,
+};
 
 const container = document.getElementById('root');
 if (!container) {
@@ -16,31 +20,28 @@ let height = pageHeight * devicePixelRatio;
 const canvas = createCanvas();
 container.append(canvas);
 const ctx = canvas.getContext('2d')!;
-let fieldWidth = width / FIELD_SCALE;
-let fieldHeight = height / FIELD_SCALE;
+let fieldWidth = width / params.fieldScale;
+let fieldHeight = height / params.fieldScale;
 const vectorField = new VectorField(fieldWidth, fieldHeight);
 const particles: Particle[] = [];
-const params = new URLSearchParams(document.location.search);
-const paramParticles = params.get('particles');
-const maxTrails = (paramParticles && Number(paramParticles)) ?? DEFAULT_MAX_PARTICLES;
 
 requestAnimationFrame(animate);
 
 function animate(time: number) {
     vectorField.update(time);
-    createParticleTrails();
-    clear();
+    fillParticles();
+    clearFrame();
     updateAndDrawParticleTrails();
     requestAnimationFrame(animate);
 }
 
 function updateAndDrawParticleTrails() {
     particles.forEach((particle, i) => {
-        if (Math.random() > 0.999) {
+        if (Math.random() > 0.97) {
             particles.splice(i, 1);
         }
-        const fieldX = Math.floor(particle.x / FIELD_SCALE);
-        const fieldY = Math.floor(particle.y / FIELD_SCALE);
+        const fieldX = Math.floor(particle.x / params.fieldScale);
+        const fieldY = Math.floor(particle.y / params.fieldScale);
         const vector = vectorField.getVector(fieldX, fieldY);
         if (vector) {
             particle.x += vector.x * 4;
@@ -50,19 +51,14 @@ function updateAndDrawParticleTrails() {
         }
         ctx.fillStyle = 'rgba(255, 255, 255, 0.5';
         ctx.beginPath();
-        ctx.arc(particle.x, particle.y, PARTICLE_SIZE, 0, 2 * Math.PI);
+        ctx.arc(particle.x, particle.y, params.particleSize, 0, 2 * Math.PI);
         ctx.fill();
     });
 }
 
-function createParticleTrails() {
-    if (particles.length >= maxTrails) {
-        return;
-    }
-    for (let i = 0; i < maxTrails; i++) {
-        if (particles.length >= maxTrails) {
-            break;
-        }
+function fillParticles() {
+    const particleFillCount = params.particleCount - particles.length;
+    for (let i = 0; i < particleFillCount; i++) {
         particles.push(new Particle(
             Math.random() * width,
             Math.random() * height,
@@ -70,8 +66,8 @@ function createParticleTrails() {
     }
 }
 
-function clear() {
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.02)';
+function clearFrame() {
+    ctx.fillStyle = `rgba(0, 0, 0, ${params.frameAlpha})`;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 }
 
@@ -90,9 +86,9 @@ window.onresize = () => {
     canvas.width = width;
     canvas.height = height;
     canvas.setAttribute('style', `height: ${pageHeight}px; width: ${pageWidth}px`);
-    fieldWidth = width / FIELD_SCALE;
-    fieldHeight = height / FIELD_SCALE;
+    fieldWidth = width / params.fieldScale;
+    fieldHeight = height / params.fieldScale;
     vectorField.width = fieldWidth;
     vectorField.height = fieldHeight;
-    clear();
+    clearFrame();
 };
