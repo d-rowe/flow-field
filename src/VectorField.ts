@@ -24,7 +24,7 @@ export default class VectorField {
         this.width = width;
         this.height = height;
         this.z = z;
-        this.field = this.constructField();
+        this.field = this.initializeField();
     }
 
     update(time: number, noiseScale?: number, timeNoiseScale?: number): void {
@@ -35,7 +35,8 @@ export default class VectorField {
         if (timeNoiseScale !== undefined) {
             this.timeNoiseScale = timeNoiseScale;
         }
-        this.field = this.constructField();
+
+        this.updateField();
     }
 
     getVector(x: number, y: number): Vector | null {
@@ -46,10 +47,16 @@ export default class VectorField {
         return null;
     }
 
-    private constructField(): Field {
-        const field: Field = [];
+    private initializeField(): Field {
+        const field = [];
         for (let y = 0; y < this.height; y++) {
-            const row = [];
+            field.push(new Array(this.width).fill(new Vector(0)));
+        }
+        return field;
+    }
+
+    private updateField(): void {
+        for (let y = 0; y < this.height; y++) {
             for (let x = 0; x < this.width; x++) {
                 // map noise range -1 to 1 to angle between 0 to 360 degrees
                 const angle = (noise(
@@ -57,11 +64,8 @@ export default class VectorField {
                     y * this.noiseScale,
                     this.time * this.timeNoiseScale,
                 ) + 1) * 180;
-                row.push(new Vector(angle));
+                this.field[y][x] = new Vector(angle);
             }
-            field.push(row);
         }
-
-        return field;
     }
 }

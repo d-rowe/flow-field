@@ -2,24 +2,30 @@ import { GUI } from 'dat.gui';
 
 type Options = {
     fieldScale: number,
-    frameAlpha: number,
+    friction: number,
+    blending: number,
     noiseScale: number,
     particleAlpha: number,
     particleCount: number,
-    particleLifeSpan: number,
+    particleSurvivalRate: number,
+    particleMaxSpeed: number,
+    particleMass: number,
     particleSize: number,
     timeNoiseScale: number,
 };
 
 const options: Options = {
     fieldScale: 10,
-    frameAlpha: 0.02,
+    friction: 0.115,
+    blending: 0.95,
     noiseScale: 0.005,
-    particleAlpha: 0.5,
+    particleAlpha: 0.77,
     particleCount: 10000,
-    particleLifeSpan: 0.97,
+    particleSurvivalRate: 0.99,
+    particleMaxSpeed: 200,
+    particleMass: 3.8,
     particleSize: 1,
-    timeNoiseScale: 0.00001,
+    timeNoiseScale: 0.000015,
 };
 
 updateFromUrlParams();
@@ -27,9 +33,11 @@ updateFromUrlParams();
 function updateFromUrlParams() {
     const searchParams = new URLSearchParams(window.location.search);
     searchParams.forEach((val, key) => {
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        options[key] = Number(val);
+        if (key in options) {
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore
+            options[key] = Number(val);
+        }
     });
 }
 
@@ -42,16 +50,18 @@ export function getUrlParams(): string {
 }
 
 const gui = new GUI();
-const settingsFolder = gui.addFolder('Settings');
-settingsFolder.add(options, 'fieldScale', 1, 50);
-settingsFolder.add(options, 'frameAlpha', 0, 1);
-settingsFolder.add(options, 'particleAlpha', 0, 1);
-settingsFolder.add(options, 'particleCount', 0, 25000);
-settingsFolder.add(options, 'particleSize', 0.01, 10);
-settingsFolder.add(options, 'particleLifeSpan', 0, 1);
-settingsFolder.add(options, 'noiseScale', 0.001, 0.025);
-settingsFolder.add(options, 'timeNoiseScale', 0, 0.00005);
-settingsFolder.open();
+const particleFolder = gui.addFolder('particle');
+particleFolder.add(options, 'blending', 0, 1);
+particleFolder.add(options, 'friction', 0, 1);
+particleFolder.add(options, 'particleAlpha', 0, 1);
+particleFolder.add(options, 'particleCount', 0, 25000);
+particleFolder.add(options, 'particleSize', 0.01, 10);
+particleFolder.add(options, 'particleSurvivalRate', 0, 1);
+particleFolder.add(options, 'particleMaxSpeed', 1, 200);
+particleFolder.add(options, 'particleMass', 0.1, 5);
+particleFolder.add(options, 'noiseScale', 0.001, 0.025);
+particleFolder.add(options, 'timeNoiseScale', 0, 0.00005);
+particleFolder.open();
 gui.add({
     copyUrl() {
         const urlParams = getUrlParams();
