@@ -1,4 +1,4 @@
-import ParticleTrail from './ParticleTrail';
+import Particle from './Particle';
 import VectorField from "./VectorField";
 
 const DEFAULT_MAX_PARTICLES = 10000;
@@ -19,9 +19,8 @@ const ctx = canvas.getContext('2d')!;
 let fieldWidth = width / FIELD_SCALE;
 let fieldHeight = height / FIELD_SCALE;
 const vectorField = new VectorField(fieldWidth, fieldHeight);
-const particleTrails: ParticleTrail[] = [];
+const particles: Particle[] = [];
 const params = new URLSearchParams(document.location.search);
-const shouldDrawField = Boolean(params.get('field'));
 const paramParticles = params.get('particles');
 const maxTrails = (paramParticles && Number(paramParticles)) ?? DEFAULT_MAX_PARTICLES;
 
@@ -31,87 +30,43 @@ function animate(time: number) {
     vectorField.update(time);
     createParticleTrails();
     clear();
-    drawField();
     updateAndDrawParticleTrails();
     requestAnimationFrame(animate);
 }
 
 function updateAndDrawParticleTrails() {
-    particleTrails.forEach((particleTrail, i) => {
+    particles.forEach((particle, i) => {
         if (Math.random() > 0.999) {
-            particleTrails.splice(i, 1);
+            particles.splice(i, 1);
         }
-        const { head } = particleTrail;
-        if (!head) {
-            return;
-        }
-        const { particle } = head;
         const fieldX = Math.floor(particle.x / FIELD_SCALE);
         const fieldY = Math.floor(particle.y / FIELD_SCALE);
-        let currentNode = particleTrail.head;
         const vector = vectorField.getVector(fieldX, fieldY);
         if (vector) {
-            currentNode = particleTrail.addParticle(
-                particle.x + (vector.x * 4),
-                particle.y + vector.y * 4
-            );
+            particle.x += vector.x * 4;
+            particle.y += vector.y * 4;
         } else {
-            particleTrail.removeLastParticle();
-            if (particleTrail.length < 2) {
-                particleTrails.splice(i, 1);
-            }
+            particles.splice(i, 1);
         }
-        let alpha = 0.5;
-        while (currentNode) {
-            const currentParticle = currentNode.particle;
-            ctx.fillStyle = `rgba(255, 255, 255, ${alpha}`;
-            ctx.beginPath();
-            ctx.arc(currentParticle.x, currentParticle.y, PARTICLE_SIZE, 0, 2 * Math.PI);
-            ctx.fill();
-            currentNode = currentNode.next;
-            alpha -= 1 / particleTrail.length;
-        }
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.5';
+        ctx.beginPath();
+        ctx.arc(particle.x, particle.y, PARTICLE_SIZE, 0, 2 * Math.PI);
+        ctx.fill();
     });
 }
 
-function drawField() {
-    if (!shouldDrawField) {
-        return;
-    }
-    for (let fieldY = 0; fieldY < fieldHeight; fieldY++) {
-        for (let fieldX = 0; fieldX < fieldWidth; fieldX++) {
-            const vector = vectorField.getVector(fieldX, fieldY);
-            if (!vector) {
-                continue;
-            }
-            const startX = fieldX * FIELD_SCALE;
-            const startY = fieldY * FIELD_SCALE;
-            const endX = startX + (vector.x * FIELD_SCALE);
-            const endY = startY + (vector.y * FIELD_SCALE);
-            ctx.lineWidth = 0.5;
-            ctx.strokeStyle = '#fb8500';
-            ctx.beginPath();
-            ctx.moveTo(startX, startY);
-            ctx.lineTo(endX, endY);
-            ctx.stroke();
-        }
-    }
-}
-
 function createParticleTrails() {
-    if (particleTrails.length >= maxTrails) {
+    if (particles.length >= maxTrails) {
         return;
     }
     for (let i = 0; i < maxTrails; i++) {
-        if (particleTrails.length >= maxTrails) {
+        if (particles.length >= maxTrails) {
             break;
         }
-        const trail = new ParticleTrail();
-        trail.addParticle(
+        particles.push(new Particle(
             Math.random() * width,
             Math.random() * height,
-        );
-        particleTrails.push(trail);
+        ));
     }
 }
 
