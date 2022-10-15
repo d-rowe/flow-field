@@ -1,9 +1,9 @@
 import ParticleTrail from './ParticleTrail';
 import VectorField from "./VectorField";
 
-const DEFAULT_MAX_PARTICLES = 200;
-const FIELD_SCALE = 50;
-const PARTICLE_SIZE = 2;
+const DEFAULT_MAX_PARTICLES = 10000;
+const FIELD_SCALE = 10;
+const PARTICLE_SIZE = 1;
 
 const container = document.getElementById('root');
 if (!container) {
@@ -38,6 +38,9 @@ function animate(time: number) {
 
 function updateAndDrawParticleTrails() {
     particleTrails.forEach((particleTrail, i) => {
+        if (Math.random() > 0.999) {
+            particleTrails.splice(i, 1);
+        }
         const { head } = particleTrail;
         if (!head) {
             return;
@@ -46,22 +49,22 @@ function updateAndDrawParticleTrails() {
         const fieldX = Math.floor(particle.x / FIELD_SCALE);
         const fieldY = Math.floor(particle.y / FIELD_SCALE);
         let currentNode = particleTrail.head;
-        try {
-            const vector = vectorField.getVector(fieldX, fieldY);
+        const vector = vectorField.getVector(fieldX, fieldY);
+        if (vector) {
             currentNode = particleTrail.addParticle(
                 particle.x + (vector.x * 4),
                 particle.y + vector.y * 4
             );
-        } catch (err) {
+        } else {
             particleTrail.removeLastParticle();
             if (particleTrail.length < 2) {
                 particleTrails.splice(i, 1);
             }
         }
-        let alpha = 1;
+        let alpha = 0.3;
         while (currentNode) {
             const currentParticle = currentNode.particle;
-            ctx.fillStyle = `rgba(0, 0, 0, ${alpha}`;
+            ctx.fillStyle = `rgba(255, 255, 255, ${alpha}`;
             ctx.beginPath();
             ctx.arc(currentParticle.x, currentParticle.y, PARTICLE_SIZE, 0, 2 * Math.PI);
             ctx.fill();
@@ -78,6 +81,9 @@ function drawField() {
     for (let fieldY = 0; fieldY < fieldHeight; fieldY++) {
         for (let fieldX = 0; fieldX < fieldWidth; fieldX++) {
             const vector = vectorField.getVector(fieldX, fieldY);
+            if (!vector) {
+                continue;
+            }
             const startX = fieldX * FIELD_SCALE;
             const startY = fieldY * FIELD_SCALE;
             const endX = startX + (vector.x * FIELD_SCALE);
@@ -110,7 +116,8 @@ function createParticleTrails() {
 }
 
 function clear() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.02)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
 }
 
 function createCanvas(): HTMLCanvasElement {

@@ -1,6 +1,6 @@
 import Particle from './Particle';
 
-const MAX_LENGTH = 50;
+const MAX_LENGTH = 1;
 
 // Linked list of particles
 export default class ParticleTrail {

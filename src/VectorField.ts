@@ -1,15 +1,14 @@
-import { createNoise3D } from 'simplex-noise';
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+import {noise} from '@chriscourses/perlin-noise';
 import Vector from './Vector';
-
-import type { NoiseFunction3D } from 'simplex-noise';
 
 type Field = Vector[][];
 
-const noiseScale = 0.0002;
-const timeNoiseScale = 0.0000005;
+const noiseScale = 0.005;
+const timeNoiseScale = 0.00001;
 
 export default class VectorField {
-    declare noise: NoiseFunction3D;
     declare width: number;
     declare height: number;
     declare z: number;
@@ -18,7 +17,6 @@ export default class VectorField {
 
     constructor(width: number, height: number, z = 0) {
         this.time = 0;
-        this.noise = createNoise3D();
         this.width = width;
         this.height = height;
         this.z = z;
@@ -30,9 +28,9 @@ export default class VectorField {
         this.field = this.constructField();
     }
 
-    getVector(x: number, y: number): Vector {
+    getVector(x: number, y: number): Vector | null {
         if (x > this.width || x < 0 || y > this.height || y < 0) {
-            throw new Error('Coordinate out of bounds');
+            return null;
         }
         return this.field[y][x];
     }
@@ -43,7 +41,7 @@ export default class VectorField {
             const row = [];
             for (let x = 0; x < this.width; x++) {
                 // map noise range -1 to 1 to angle between 0 to 360 degrees
-                const angle = (this.noise(
+                const angle = (noise(
                     x * noiseScale,
                     y * noiseScale,
                     this.time * timeNoiseScale,
