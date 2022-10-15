@@ -43,7 +43,7 @@ function updateParticles() {
     }
 
     // update particle positions
-    particles.forEach((particle, i) => {
+    particles.forEach(particle => {
         if (Math.random() > options.particleSurvivalRate) {
             resetParticle(particle);
         }
