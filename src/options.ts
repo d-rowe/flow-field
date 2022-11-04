@@ -16,18 +16,18 @@ type Options = {
 };
 
 const options: Options = {
-    blending: 0.95,
+    blending: 0.74,
     drawLines: false,
     fieldScale: 10,
-    friction: 0.115,
-    noiseScale: 0.005,
-    particleAlpha: 0.77,
+    friction: 1,
+    noiseScale: 0.003,
+    particleAlpha: 1,
     particleCount: 10000,
-    particleMass: 3.8,
+    particleMass: 0.35,
     particleMaxSpeed: 200,
     particleSize: 1,
-    particleSurvivalRate: 0.99,
-    flux: 20,
+    particleSurvivalRate: 0.95,
+    flux: 52,
 };
 
 updateFromUrlParams();
@@ -65,7 +65,6 @@ particleFolder.add(options, 'flux', 0, 100);
 particleFolder.add(options, 'particleAlpha', 0, 1);
 particleFolder.add(options, 'particleCount', 0, 25000);
 particleFolder.add(options, 'particleMass', 0.05, 5);
-particleFolder.add(options, 'particleMaxSpeed', 1, 200);
 particleFolder.add(options, 'particleSize', 0.01, 10);
 particleFolder.add(options, 'particleSurvivalRate', 0, 1);
 particleFolder.open();
